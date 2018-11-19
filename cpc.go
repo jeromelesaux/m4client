@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// CpcHead structure describes the Amsdos header
 type CpcHead struct {
 	User      byte
 	Filename  [8]byte
@@ -22,6 +23,7 @@ type CpcHead struct {
 	NotUsed4  [59]byte
 }
 
+// ToString Will dislay the CpcHead structure content
 func (c *CpcHead) ToString() string {
 	return fmt.Sprintf("User:%x\nFilename:%s\nExtension:%s\n",
 		int(c.User),
@@ -34,6 +36,7 @@ var (
 	xorstream2 = []byte{0x49, 0xB1, 0x36, 0xF0, 0x2E, 0x1E, 0x06, 0x2A, 0x28, 0x19, 0xEA}
 )
 
+// DecryptHash returns value from decryptage of the data
 func DecryptHash(data []byte) int {
 	size := len(data)
 	idx1 := 0
@@ -62,6 +65,7 @@ func DecryptHash(data []byte) int {
 	return 0
 }
 
+// Checksum16 will generate the checksum of the data amsdos header
 func Checksum16(data []byte) uint8 {
 	var checksum uint8
 	for i := 0; i < len(data); i++ {

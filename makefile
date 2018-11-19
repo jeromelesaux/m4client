@@ -8,7 +8,7 @@ SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
 GOOS=linux
 GOARCH=amd64
 
-VERSION:=$(shell grep -m1 "M4CientVersion" *.go | sed 's/[", ]//g' | cut -d= -f2)
+VERSION:=$(shell grep -m1 "M4ClientVersion string" *.go | sed 's/[", ]//g' | cut -d= -f2)
 APP=m4_client
 
 BUILD_TIME=`date +%FT%T%z`
@@ -78,7 +78,6 @@ audit: deps
 deps: init
 		@echo "    Download packages"		
 		dep ensure -update -v
-		#@$(foreach element,$(PACKAGES),go get -d -u -v -insecure $(element);)
 
 init: clean
 		@echo "    Init of the project"
