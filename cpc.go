@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
+	"os"
 )
 
 // CpcHead structure describes the Amsdos header
@@ -21,6 +24,22 @@ type CpcHead struct {
 	Pad2      byte
 	Checksum  byte
 	NotUsed4  [59]byte
+}
+
+func NewCpcHeader(f *os.File) (*CpcHead, error) {
+	header := &CpcHead{}
+	data := make([]byte, 123)
+	_, err := f.Read(data)
+	if err != nil {
+		return &CpcHead{}, err
+	}
+	buf := bytes.NewBuffer(data)
+	err = binary.Read(buf, binary.LittleEndian, header)
+	if err != nil {
+		return &CpcHead{}, err
+	}
+
+	return header, nil
 }
 
 // ToString Will dislay the CpcHead structure content
