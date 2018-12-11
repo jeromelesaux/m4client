@@ -17,7 +17,7 @@ import (
 // M4HttpAction is struct for url complement according to the action
 type M4HttpAction string
 
-var UserAgent = "cpcxfer"
+var userAgent = "cpcxfer"
 
 // M4 Wifi card http possibles actions
 const (
@@ -51,7 +51,7 @@ func (m *M4Client) Url() string {
 
 func PerformHttpAction(req *http.Request) error {
 	client := &http.Client{}
-	req.Header.Add("user-agent", UserAgent)
+	req.Header.Add("user-agent", userAgent)
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
@@ -99,7 +99,7 @@ func (m *M4Client) Download(remotePath string) error {
 	}
 	defer fh.Close()
 	req, err := http.NewRequest("GET", m.Url()+remotePath, nil)
-	req.Header.Add("user-agent", UserAgent)
+	req.Header.Add("user-agent", userAgent)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -266,7 +266,7 @@ func (m *M4Client) Ls(remotePath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	req.Header.Add("user-agent", UserAgent)
+	req.Header.Add("user-agent", userAgent)
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
