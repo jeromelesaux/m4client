@@ -5,15 +5,19 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 )
 
 // M4HttpAction is struct for url complement according to the action
 type M4HttpAction string
+
+var UserAgent = "cpcxfer"
 
 // M4 Wifi card http possibles actions
 const (
@@ -47,7 +51,7 @@ func (m *M4Client) Url() string {
 
 func PerformHttpAction(req *http.Request) error {
 	client := &http.Client{}
-	req.Header.Add("user-agent", "cpcxfer")
+	req.Header.Add("user-agent", UserAgent)
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
@@ -95,7 +99,7 @@ func (m *M4Client) Download(remotePath string) error {
 	}
 	defer fh.Close()
 	req, err := http.NewRequest("GET", m.Url()+remotePath, nil)
-	req.Header.Add("user-agent", "cpcxfer")
+	req.Header.Add("user-agent", UserAgent)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -108,6 +112,20 @@ func (m *M4Client) Download(remotePath string) error {
 	_, err = io.Copy(fh, resp.Body)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (m *M4Client) UploadDirectoryContent(remotePath, localDirectoryPath string) error {
+	files, err := ioutil.ReadDir(localDirectoryPath)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		if !file.IsDir() {
+			m.Upload(remotePath, localDirectoryPath+string(filepath.Separator)+file.Name())
+		}
 	}
 	return nil
 }
@@ -239,4 +257,27 @@ func (m *M4Client) UploadRom(romFilpath, romName string, romId int) error {
 		return errors.New("Http response differs from 200")
 	}
 	return nil
+}
+
+func (m *M4Client) Ls(remotePath string) (string, error) {
+	m.Action = Ls
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", m.Url(), nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Add("user-agent", UserAgent)
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return "", errors.New("Response from cpc http server differs from 200")
+	}
+	return string(body), nil
 }
