@@ -23,7 +23,7 @@ type CpcHead struct {
 	Size2       int16
 	BigLength   byte
 	Checksum    int16
-	NotUsed4    [0x3B]byte
+	NotUsed2    [0x3B]byte
 }
 
 func NewCpcHeader(f *os.File) (*CpcHead, error) {
@@ -42,22 +42,42 @@ func NewCpcHeader(f *os.File) (*CpcHead, error) {
 	return header, nil
 }
 
-func (c *CpcHead) Checksum16() uint8 {
-	var checksum uint8
-	checksum += c.User
+func (c *CpcHead) ComputedChecksum16() uint16 {
+	var checksum uint16
+	bf := make([]byte,2)
+	checksum += uint16(c.User)
+	checksum += Checksum16(c.Filename[:])
+	checksum += uint16(c.BlockNum)
+	checksum += uint16(c.LastBlock)
+	checksum += uint16(c.Type)
+	binary.LittleEndian.PutUint16(bf,uint16(c.Size))
+	checksum += Checksum16(bf)
+	binary.LittleEndian.PutUint16(bf,uint16(c.Address))
+	checksum += Checksum16(bf)
+	checksum += uint16(c.FirstBlock)
+	binary.LittleEndian.PutUint16(bf,uint16(c.LogicalSize))
+	checksum += Checksum16(bf)
+	binary.LittleEndian.PutUint16(bf,uint16(c.Exec))
+	checksum += Checksum16(bf)
+	checksum += Checksum16(c.NotUsed[:])
+	binary.LittleEndian.PutUint16(bf,uint16(c.Size2))
+	checksum += Checksum16(bf)
+	checksum += uint16(c.BigLength)
+
 	return checksum
 }
 
 // ToString Will dislay the CpcHead structure content
 func (c *CpcHead) ToString() string {
-	return fmt.Sprintf("User:%x\nFilename:%s\nType:%d\nSize:&%.2x\nAddress of loading:&%.2x\nAddress of execution:&%.2x\nChecksum:&%.2x\n",
+	return fmt.Sprintf("User:%x\nFilename:%s\nType:%d\nSize:&%.2x\nAddress of loading:&%.2x\nAddress of execution:&%.2x\nChecksum:&%.2x\nComputed Checksum:&%.2x\n",
 		int(c.User),
 		string(c.Filename[:]),
 		c.Type,
 		c.Size2,
 		c.Address,
 		c.Exec,
-		c.Checksum)
+		c.Checksum,
+		c.ComputedChecksum16())
 }
 
 func (c *CpcHead) PrettyPrint() {
@@ -100,10 +120,10 @@ func DecryptHash(data []byte) int {
 }
 
 // Checksum16 will generate the checksum of the data amsdos header
-func Checksum16(data []byte) uint8 {
-	var checksum uint8
+func Checksum16(data []byte) uint16 {
+	var checksum uint16
 	for i := 0; i < len(data); i++ {
-		checksum += data[i]
+		checksum += uint16(data[i])
 	}
 	return checksum
 }
