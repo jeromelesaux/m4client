@@ -12,6 +12,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"github.com/jeromelesaux/m4client/cpc"
 )
 
 // M4HttpAction is struct for url complement according to the action
@@ -137,7 +138,7 @@ func (m *M4Client) Upload(remotePath, localPath string) error {
 		return err
 	}
 	defer fh.Close()
-	if _, err := NewCpcHeader(fh); err != nil {
+	if _, err := cpc.NewCpcHeader(fh); err != nil {
 		return err
 	}
 
