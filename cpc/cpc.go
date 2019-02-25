@@ -9,26 +9,26 @@ import (
 
 // CpcHead structure describes the Amsdos header
 type CpcHead struct {
-	User      byte
-	Filename  [8]byte
-	Extension [3]byte
-	NotUsed   [6]byte
-	Type      byte
-	NotUsed2  [2]byte
-	Address   byte
-	Pad       byte
-	Size      byte
-	Exec      byte
-	NotUsed3  [36]byte
-	Size2     byte
-	Pad2      byte
-	Checksum  byte
-	NotUsed4  [59]byte
+	User        byte
+	Filename    [15]byte
+	BlockNum    byte
+	LastBlock   byte
+	Type        byte
+	Size        int16
+	Address     int16
+	FirstBlock  byte
+	LogicalSize int16
+	Exec        int16
+	NotUsed     [0x24]byte
+	Size2       int16
+	BigLength   byte
+	Checksum    int16
+	NotUsed4    [0x3B]byte
 }
 
 func NewCpcHeader(f *os.File) (*CpcHead, error) {
 	header := &CpcHead{}
-	data := make([]byte, 123)
+	data := make([]byte, 128)
 	_, err := f.Read(data)
 	if err != nil {
 		return &CpcHead{}, err
@@ -42,12 +42,27 @@ func NewCpcHeader(f *os.File) (*CpcHead, error) {
 	return header, nil
 }
 
+func (c *CpcHead) Checksum16() uint8 {
+	var checksum uint8
+	checksum += c.User
+	return checksum
+}
+
 // ToString Will dislay the CpcHead structure content
 func (c *CpcHead) ToString() string {
-	return fmt.Sprintf("User:%x\nFilename:%s\nExtension:%s\n",
+	return fmt.Sprintf("User:%x\nFilename:%s\nType:%d\nSize:&%.2x\nAddress of loading:&%.2x\nAddress of execution:&%.2x\nChecksum:&%.2x\n",
 		int(c.User),
 		string(c.Filename[:]),
-		string(c.Extension[:]))
+		c.Type,
+		c.Size2,
+		c.Address,
+		c.Exec,
+		c.Checksum)
+}
+
+func (c *CpcHead) PrettyPrint() {
+	fmt.Printf("%x", *c)
+	return
 }
 
 var (
