@@ -14,15 +14,15 @@ type CpcHead struct {
 	BlockNum    byte
 	LastBlock   byte
 	Type        byte
-	Size        int16
-	Address     int16
+	Size        uint16
+	Address     uint16
 	FirstBlock  byte
-	LogicalSize int16
-	Exec        int16
+	LogicalSize uint16
+	Exec        uint16
 	NotUsed     [0x24]byte
-	Size2       int16
+	Size2       uint16
 	BigLength   byte
-	Checksum    int16
+	Checksum    uint16
 	NotUsed2    [0x3B]byte
 }
 
