@@ -40,14 +40,14 @@ const (
 // M4Client M4 http client with action, address ip client
 // and Cpc file path
 type M4Client struct {
-	Action            M4HttpAction
+	action            M4HttpAction
 	IPClient          string
 	CpcLocalFilePath  string
 	CpcRemoteFilePath string
 }
 
 func (m *M4Client) Url() string {
-	return "http://" + m.IPClient + "/" + string(m.Action)
+	return "http://" + m.IPClient + "/" + string(m.action)
 }
 
 func PerformHttpAction(req *http.Request) error {
@@ -66,7 +66,7 @@ func PerformHttpAction(req *http.Request) error {
 }
 
 func (m *M4Client) PauseCpc() error {
-	m.Action = Pause
+	m.action = Pause
 	req, err := http.NewRequest("GET", m.Url(), nil)
 	if err != nil {
 		return err
@@ -75,7 +75,7 @@ func (m *M4Client) PauseCpc() error {
 }
 
 func (m *M4Client) ResetM4() error {
-	m.Action = M4Reset
+	m.action = M4Reset
 	req, err := http.NewRequest("GET", m.Url(), nil)
 	if err != nil {
 		return err
@@ -84,7 +84,7 @@ func (m *M4Client) ResetM4() error {
 }
 
 func (m *M4Client) ResetCpc() error {
-	m.Action = CpcReset
+	m.action = CpcReset
 	req, err := http.NewRequest("GET", m.Url(), nil)
 	if err != nil {
 		return err
@@ -93,7 +93,7 @@ func (m *M4Client) ResetCpc() error {
 }
 
 func (m *M4Client) Download(remotePath string) error {
-	m.Action = Download
+	m.action = Download
 	fh, err := os.Create(path.Base(remotePath))
 	if err != nil {
 		return err
@@ -132,7 +132,7 @@ func (m *M4Client) UploadDirectoryContent(remotePath, localDirectoryPath string)
 }
 
 func (m *M4Client) Upload(remotePath, localPath string) error {
-	m.Action = Upload
+	m.action = Upload
 	fh, err := os.Open(localPath)
 	if err != nil {
 		return err
@@ -172,7 +172,7 @@ func (m *M4Client) Upload(remotePath, localPath string) error {
 }
 
 func (m *M4Client) Execute(cpcfile string) error {
-	m.Action = Execute
+	m.action = Execute
 	req, err := http.NewRequest("GET", m.Url()+cpcfile, nil)
 	if err != nil {
 		return err
@@ -180,9 +180,9 @@ func (m *M4Client) Execute(cpcfile string) error {
 	return PerformHttpAction(req)
 }
 
-func (m *M4Client) MakeDirectory(remoteFolder string) error {
-	m.Action = Mkdir
-	req, err := http.NewRequest("GET", m.Url()+remoteFolder, nil)
+func (m *M4Client) MakeDirectory() error {
+	m.action = Mkdir
+	req, err := http.NewRequest("GET", m.Url()+m.CpcRemoteFilePath, nil)
 	if err != nil {
 		return err
 	}
@@ -190,7 +190,7 @@ func (m *M4Client) MakeDirectory(remoteFolder string) error {
 }
 
 func (m *M4Client) ChangeDirectory() error {
-	m.Action = Cd
+	m.action = Cd
 	req, err := http.NewRequest("GET", m.Url()+m.CpcRemoteFilePath, nil)
 	if err != nil {
 		return err
@@ -199,7 +199,7 @@ func (m *M4Client) ChangeDirectory() error {
 }
 
 func (m *M4Client) DeleteRom(romNumber int) error {
-	m.Action = Rom
+	m.action = Rom
 	req, err := http.NewRequest("GET", m.Url()+"?rmsl="+strconv.Itoa(romNumber), nil)
 	if err != nil {
 		return err
@@ -211,7 +211,7 @@ func (m *M4Client) UploadRom(romFilpath, romName string, romId int) error {
 	if romId < 0 || romId >= 32 {
 		return errors.New("Rom id is not compliant.")
 	}
-	m.Action = Rom
+	m.action = Rom
 
 	fh, err := os.Open(romFilpath)
 	if err != nil {
@@ -261,7 +261,7 @@ func (m *M4Client) UploadRom(romFilpath, romName string, romId int) error {
 }
 
 func (m *M4Client) Ls() (string, error) {
-	m.Action = Ls
+	m.action = Ls
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", m.Url(), nil)
 	if err != nil {
