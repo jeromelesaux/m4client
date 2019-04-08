@@ -3,13 +3,13 @@ RM=rm
 MV=mv
 
 
-SOURCEDIR=.
-SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
-GOOS=linux
+SOURCEDIR=./cli/
+SOURCES := $(shell find . -name '*.go')
+GOOS=darwin
 GOARCH=amd64
 
-VERSION:=$(shell grep -m1 "M4ClientVersion string" *.go | sed 's/[", ]//g' | cut -d= -f2)
-APP=m4_client
+#VERSION:=$(shell grep -m1 "M4ClientVersion string" *.go | sed 's/[", ]//g' | cut -d= -f2)
+APP=m4client
 
 BUILD_TIME=`date +%FT%T%z`
 PACKAGES := 
@@ -17,7 +17,7 @@ M4_CLIENT=$(shell git rev-parse --short HEAD)
 
 LIBS=
 
-LDFLAGS=-ldflags  "-X main.M4ClientGitHash=$(M4_CLIENT)"
+LDFLAGS=-ldflags  #"-X main.M4ClientGitHash=$(M4_CLIENT)"
 
 .DEFAULT_GOAL:=test
 
@@ -40,8 +40,8 @@ help:
 
 
 package: ${APP}
-		@tar -cvzf ${APP}-${GOOS}-${GOARCH}-${VERSION}.tar.gz ${APP}-${VERSION}
-		@echo "    Archive ${APP}-${GOOS}-${GOARCH}-${VERSION}.tar.gz created"
+		@tar -cvzf ${APP}-${GOOS}-${GOARCH}.tar.gz ${APP}
+		@echo "    Archive ${APP}-${GOOS}-${GOARCH}.tar.gz created"
 
 test: $(APP) 
 		@GOOS=${GOOS} GOARCH=${GOARCH} go test -cover ./...
@@ -58,14 +58,8 @@ coverage:
 $(APP): fmt $(SOURCES)
 		@echo "    Compilation des sources ${BUILD_TIME}"
 		@echo ""
-		@GOOS=${GOOS} GOARCH=${GOARCH} go build ${LDFLAGS} -o ${APP}-${VERSION} $(SOURCEDIR)/main.go
-		@echo "    ${APP}-${VERSION} generated."
-
-build: 
-		@echo "    Compilation des sources ${BUILD_TIME}"
-		@echo ""
-		@GOOS=${GOOS} GOARCH=${GOARCH} go build ${LDFLAGS} -o ${APP}-${VERSION} $(SOURCEDIR)/main.go
-		@echo "    ${APP}-${VERSION} generated."
+		@GOOS=${GOOS} GOARCH=${GOARCH} go build -o ${APP} $(SOURCEDIR)/main.go
+		@echo "    ${APP} generated."
 
 fmt: audit
 		@echo "    Go FMT"
@@ -84,18 +78,18 @@ init: clean
 		@echo "    Version :: ${VERSION}"
 
 clean:
-		@if [ -f "${APP}-${VERSION}" ] ; then rm ${APP}-${VERSION} ; fi
-		@if [ -f "${APP}-linux-amd64-${VERSION}.tar.gz" ] ; then rm ${APP}-linux-amd64-${VERSION}.tar.gz ; fi
+		@if [ -f "${APP}" ] ; then rm ${APP} ; fi
+		@if [ -f "${APP}-linux-amd64.tar.gz" ] ; then rm ${APP}-linux-amd64.tar.gz ; fi
 		@rm -f *.out
 		@echo "    Nettoyage effectuee"
 
 
 execute: 
-		@./${APP}-${VERSION} -port 8080 -dbconfig dbconfig.json -appconfig appconfig.json -logerrorfile test.log -loglevel DEBUG
+		@./${APP} -port 8080 -dbconfig dbconfig.json -appconfig appconfig.json -logerrorfile test.log -loglevel DEBUG
 
 package-zip:  ${APP}
-		@zip -r ${APP}-${GOOS}-${GOARCH}-${VERSION}.zip ./${APP}-${VERSION}
-		@echo "    Archive ${APP}-${GOOS}-${GOARCH}-${VERSION}.zip created"
+		@zip -r ${APP}-${GOOS}-${GOARCH}.zip ./${APP}
+		@echo "    Archive ${APP}-${GOOS}-${GOARCH}.zip created"
 
 
 #----------------------------------------------------------------------#
