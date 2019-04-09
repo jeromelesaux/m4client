@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/jeromelesaux/m4client/cpc"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -25,12 +24,12 @@ const (
 	M4Reset  M4HttpAction = "config.cgi?mres"
 	CpcReset M4HttpAction = "config.cgi?cres"
 	Start    M4HttpAction = "config.cgi?cctr"
-	Mkdir    M4HttpAction = "config.cgi?mdkir="
-	Ls       M4HttpAction = "config?ls="
-	Cd       M4HttpAction = "config?cd="
-	Rm       M4HttpAction = "config?rm="
+	Mkdir    M4HttpAction = "config.cgi?mkdir="
+	Ls       M4HttpAction = "config.cgi?ls="
+	Cd       M4HttpAction = "config.cgi?cd="
+	Rm       M4HttpAction = "configc.gi?rm="
 	Execute  M4HttpAction = "config.cgi?run2="
-	Run      M4HttpAction = "config.cgi?run"
+	Run      M4HttpAction = "config.cgi?run="
 	Pause    M4HttpAction = "config.cgi?chlt"
 	Upload   M4HttpAction = "upload.html"
 	Download M4HttpAction = "sd/"
@@ -40,10 +39,10 @@ const (
 // M4Client M4 http client with action, address ip client
 // and Cpc file path
 type M4Client struct {
-	action            M4HttpAction
-	IPClient          string
-	CpcLocalFilePath  string
-	CpcRemoteFilePath string
+	action   M4HttpAction
+	IPClient string
+	//	CpcLocalFilePath  string
+	//	CpcRemoteFilePath string
 }
 
 func (m *M4Client) Url() string {
@@ -53,15 +52,22 @@ func (m *M4Client) Url() string {
 func PerformHttpAction(req *http.Request) error {
 	client := &http.Client{}
 	req.Header.Add("user-agent", userAgent)
+	fmt.Fprintf(os.Stdout, "User-agent:%s\n", req.Header.Get("user-agent"))
+	fmt.Fprintf(os.Stdout, "Query:%s\n", req.RemoteAddr)
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-
+	fmt.Fprintf(os.Stdout, "Response code :%d\n", resp.StatusCode)
 	if resp.StatusCode != http.StatusOK {
 		return errors.New("Response from cpc http server differs from 200")
 	}
+	//body, err := ioutil.ReadAll(resp.Body)
+	//if err != nil {
+	//	return err
+	//}
+	//fmt.Fprintf(os.Stdout, "Response body %s\n", body)
 	return nil
 }
 
@@ -138,10 +144,10 @@ func (m *M4Client) Upload(remotePath, localPath string) error {
 		return err
 	}
 	defer fh.Close()
-	if _, err := cpc.NewCpcHeader(fh); err != nil {
+	/*if _, err := cpc.NewCpcHeader(fh); err != nil {
 		return err
 	}
-
+	fh.Seek(0, 0)*/
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	part, err := writer.CreateFormFile("upfile", remotePath+"/"+path.Base(localPath))
@@ -180,18 +186,28 @@ func (m *M4Client) Execute(cpcfile string) error {
 	return PerformHttpAction(req)
 }
 
-func (m *M4Client) MakeDirectory() error {
-	m.action = Mkdir
-	req, err := http.NewRequest("GET", m.Url()+m.CpcRemoteFilePath, nil)
+func (m *M4Client) Run(cpcfile string) error {
+	m.action = Run
+	req, err := http.NewRequest("GET", m.Url()+cpcfile, nil)
 	if err != nil {
 		return err
 	}
 	return PerformHttpAction(req)
 }
 
-func (m *M4Client) ChangeDirectory() error {
+func (m *M4Client) MakeDirectory(remotedirectory string) error {
+	m.action = Mkdir
+	fmt.Fprintf(os.Stdout, "M4 action :%s, url:%s\n", m.action, m.Url())
+	req, err := http.NewRequest("GET", m.Url()+remotedirectory, nil)
+	if err != nil {
+		return err
+	}
+	return PerformHttpAction(req)
+}
+
+func (m *M4Client) ChangeDirectory(remotedirectory string) error {
 	m.action = Cd
-	req, err := http.NewRequest("GET", m.Url()+m.CpcRemoteFilePath, nil)
+	req, err := http.NewRequest("GET", m.Url()+remotedirectory, nil)
 	if err != nil {
 		return err
 	}
@@ -260,10 +276,45 @@ func (m *M4Client) UploadRom(romFilpath, romName string, romId int) error {
 	return nil
 }
 
-func (m *M4Client) Ls() (string, error) {
+func (m *M4Client) GetCache(remotePath string) (string, error) {
+	m.action = Download
+
+	req, err := http.NewRequest("GET", m.Url()+remotePath, nil)
+	req.Header.Add("user-agent", userAgent)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return "", errors.New("Not http status ok ")
+	}
+	fh := new(bytes.Buffer)
+	_, err = io.Copy(fh, resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(fh.Bytes()), nil
+}
+
+/*
+./m4client -host 192.168.1.20 -ls Jeux
+Remote path (Jeux/
+Ishido.dsk,1,190K
+Doomsday_Lost_Echoes_v1.0,0,0
+GalacticTomb_128K,0,0
+ImperialMahjong,0,0
+Orion Prime (FR) (Cargosoft),0,0
+The Shadows Of Sergoth v1.0 (F,UK,S) (128K) (Face A) (2018) [Original].dsk,1,190K
+The Shadows Of Sergoth v1.0 (F,UK,S) (128K) (Face B) (2018) [Original].dsk,1,190K
+Ishido,0,0
+) host (192.168.1.20)
+*/
+func (m *M4Client) Ls(remoteDirectory string) (string, error) {
 	m.action = Ls
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", m.Url(), nil)
+	req, err := http.NewRequest("GET", m.Url()+remoteDirectory, nil)
 	if err != nil {
 		return "", err
 	}
@@ -273,12 +324,25 @@ func (m *M4Client) Ls() (string, error) {
 		return "", err
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
+
 	if resp.StatusCode != http.StatusOK {
 		return "", errors.New("Response from cpc http server differs from 200")
 	}
-	return string(body), nil
+	content, err := m.GetCache("/m4/dir.txt")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Cannot get the dir.txt content file error :%v\n", err)
+		return "", err
+	}
+
+	return content, nil
+}
+
+func (m *M4Client) CurrentDirectory() (string, error) {
+	content, err := m.GetCache("/m4/dir.txt")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Cannot get the dir.txt content file error :%v\n", err)
+		return "", err
+	}
+
+	return content, nil
 }
