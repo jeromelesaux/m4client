@@ -194,6 +194,14 @@ func (m *M4Client) Execute(cpcfile string) error {
 	}
 	return PerformHttpAction(req)
 }
+func (m *M4Client) ExecuteCmd(cmd, cpcfile string) error {
+	m.action = Execute
+	req, err := http.NewRequest("GET", m.Url()+cmd+","+cpcfile, nil)
+	if err != nil {
+		return err
+	}
+	return PerformHttpAction(req)
+}
 
 func (m *M4Client) Remove(cpcfile string) error {
 	m.action = Rm

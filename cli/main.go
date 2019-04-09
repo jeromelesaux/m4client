@@ -23,6 +23,7 @@ var (
 	current    = flag.Bool("current", false, "Get the content of the current directory")
 	start      = flag.Bool("start", false, "Start m4")
 	remove     = flag.String("remove", "", "Remove remote directory or file")
+	cmd        = flag.String("cmd", "", "Execute remote command on your CPC")
 )
 
 func main() {
@@ -33,27 +34,27 @@ func main() {
 		flag.Usage()
 		os.Exit(-1)
 	}
-
-	if *remove != "" {
-		client := &m4.M4Client{
-			IPClient: *host,
+	client := &m4.M4Client{
+		IPClient: *host,
+	}
+	if *cmd != "" {
+		if *remotePath != "" {
+			client.ExecuteCmd(*cmd, *remotePath)
+		} else {
+			fmt.Fprintf(os.Stderr, "Cannot execute the file (%s) without the remotepath, set it\n", *cmd)
 		}
+	}
+	if *remove != "" {
 		if err := client.Remove(*remove); err != nil {
 			fmt.Fprintf(os.Stderr, "Cannot remove remote directory or file (%s) host (%s) error %v\n", *remove, *host, err)
 		}
 	}
 	if *start {
-		client := &m4.M4Client{
-			IPClient: *host,
-		}
 		if err := client.Start(); err != nil {
 			fmt.Fprintf(os.Stderr, "Cannot reset your remote cpc (%s) error %v\n", *host, err)
 		}
 	}
 	if *ls != "" {
-		client := &m4.M4Client{
-			IPClient: *host,
-		}
 		rpath, err := client.Ls(*ls)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error while getting remote path with host (%s) error :%v\n", *host, err)
@@ -62,9 +63,6 @@ func main() {
 		}
 	}
 	if *current {
-		client := &m4.M4Client{
-			IPClient: *host,
-		}
 		rpath, err := client.CurrentDirectory()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error while getting remote path with host (%s) error :%v\n", *host, err)
@@ -73,35 +71,22 @@ func main() {
 		}
 	}
 	if *cd != "" {
-		client := &m4.M4Client{
-			IPClient: *host,
-		}
 		if err := client.ChangeDirectory(*cd); err != nil {
 			fmt.Fprintf(os.Stderr, "Cannot change the directory on the M4 (%s) error :%v\n", *host, err)
 		}
 	}
 	if *resetCpc {
-		client := &m4.M4Client{
-			IPClient: *host,
-		}
 		if err := client.ResetCpc(); err != nil {
 			fmt.Fprintf(os.Stderr, "Cannot reset your remote cpc (%s) error %v\n", *host, err)
 		}
 	}
 	if *resetM4 {
-		client := &m4.M4Client{
-			IPClient: *host,
-		}
 		if err := client.ResetM4(); err != nil {
 			fmt.Fprintf(os.Stderr, "Cannot reset your remote M4 (%s) error %v\n", *host, err)
 
 		}
 	}
 	if *m4mkdir != "" {
-
-		client := m4.M4Client{
-			IPClient: *host,
-		}
 		if err := client.MakeDirectory(*m4mkdir); err != nil {
 			fmt.Fprintf(os.Stderr, "Cannot create remote directory (%s) error %v\n", *host, err)
 		}
@@ -111,34 +96,22 @@ func main() {
 		if *remotePath == "" {
 			fmt.Fprintf(os.Stderr, "Cannot send the file (%s) without the remotepath, set it\n", *upload)
 		} else {
-			client := m4.M4Client{
-				IPClient: *host,
-			}
 			if err := client.Upload(*remotePath, *upload); err != nil {
 				fmt.Fprintf(os.Stderr, "Cannot send the file (%s) to remote path (%s) host (%s) error :%v\n", *upload, *remotePath, *host, err)
 			}
 		}
 	}
 	if *download != "" {
-		client := m4.M4Client{
-			IPClient: *host,
-		}
 		if err := client.Download(*download); err != nil {
 			fmt.Fprintf(os.Stderr, "Cannot get the file (%s) from the host (%s) error :%v\n", *download, *host, err)
 		}
 	}
 	if *execute != "" {
-		client := m4.M4Client{
-			IPClient: *host,
-		}
 		if err := client.Execute(*execute); err != nil {
 			fmt.Fprintf(os.Stderr, "Cannot execute remote file (%s) on host (%s) error :%v\n", *execute, *host, err)
 		}
 	}
 	if *run != "" {
-		client := m4.M4Client{
-			IPClient: *host,
-		}
 		if err := client.Run(*run); err != nil {
 			fmt.Fprintf(os.Stderr, "Cannot run remote file (%s) on host (%s) error :%v\n", *execute, *host, err)
 		}
