@@ -21,6 +21,8 @@ var (
 	execute    = flag.String("execute", "", "Execute the remote file on your remote CPC")
 	run        = flag.String("run", "", "Run remote file on your remote CPC")
 	current    = flag.Bool("current", false, "Get the content of the current directory")
+	start      = flag.Bool("start", false, "Start m4")
+	remove     = flag.String("remove", "", "Remove remote directory or file")
 )
 
 func main() {
@@ -28,9 +30,26 @@ func main() {
 
 	if *host == "" {
 		fmt.Fprintf(os.Stderr, "Cannot contact M4 without its hostname or IP\n")
+		flag.Usage()
 		os.Exit(-1)
 	}
 
+	if *remove != "" {
+		client := &m4.M4Client{
+			IPClient: *host,
+		}
+		if err := client.Remove(*remove); err != nil {
+			fmt.Fprintf(os.Stderr, "Cannot remove remote directory or file (%s) host (%s) error %v\n", *remove, *host, err)
+		}
+	}
+	if *start {
+		client := &m4.M4Client{
+			IPClient: *host,
+		}
+		if err := client.Start(); err != nil {
+			fmt.Fprintf(os.Stderr, "Cannot reset your remote cpc (%s) error %v\n", *host, err)
+		}
+	}
 	if *ls != "" {
 		client := &m4.M4Client{
 			IPClient: *host,

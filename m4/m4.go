@@ -27,7 +27,7 @@ const (
 	Mkdir    M4HttpAction = "config.cgi?mkdir="
 	Ls       M4HttpAction = "config.cgi?ls="
 	Cd       M4HttpAction = "config.cgi?cd="
-	Rm       M4HttpAction = "configc.gi?rm="
+	Rm       M4HttpAction = "config.cgi?rm="
 	Execute  M4HttpAction = "config.cgi?run2="
 	Run      M4HttpAction = "config.cgi?run="
 	Pause    M4HttpAction = "config.cgi?chlt"
@@ -73,6 +73,15 @@ func PerformHttpAction(req *http.Request) error {
 
 func (m *M4Client) PauseCpc() error {
 	m.action = Pause
+	req, err := http.NewRequest("GET", m.Url(), nil)
+	if err != nil {
+		return err
+	}
+	return PerformHttpAction(req)
+}
+
+func (m *M4Client) Start() error {
+	m.action = Start
 	req, err := http.NewRequest("GET", m.Url(), nil)
 	if err != nil {
 		return err
@@ -179,6 +188,15 @@ func (m *M4Client) Upload(remotePath, localPath string) error {
 
 func (m *M4Client) Execute(cpcfile string) error {
 	m.action = Execute
+	req, err := http.NewRequest("GET", m.Url()+cpcfile, nil)
+	if err != nil {
+		return err
+	}
+	return PerformHttpAction(req)
+}
+
+func (m *M4Client) Remove(cpcfile string) error {
+	m.action = Rm
 	req, err := http.NewRequest("GET", m.Url()+cpcfile, nil)
 	if err != nil {
 		return err
