@@ -12,6 +12,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 // M4HttpAction is struct for url complement according to the action
@@ -35,6 +36,54 @@ const (
 	Download M4HttpAction = "sd/"
 	Rom      M4HttpAction = "roms.shtml"
 )
+
+type M4Node struct {
+	Name        string
+	IsDirectory bool
+	Size        string
+}
+
+type M4Dir struct {
+	CurrentPath string
+	Nodes       []M4Node
+}
+
+func NewM4Dir(content string) *M4Dir {
+	res := strings.Split(content, "\n")
+	if len(res) == 0 {
+		return &M4Dir{}
+	}
+	d := &M4Dir{CurrentPath: res[0], Nodes: make([]M4Node, 0)}
+	for i := 1; i < len(res); i++ {
+		l := res[i]
+		var size, name, dir string
+		var index int
+		for j := len(l) - 1; j >= 0; j-- {
+			if l[j] == ',' {
+				break
+			}
+			size = string(l[j]) + size
+			index++
+		}
+		for j := len(l) - index; j >= 0; j-- {
+			if l[j] == ',' {
+				break
+			}
+			dir = string(l[j]) + dir
+			index++
+		}
+
+		name = string(l[0:(len(l) - (index + 2))])
+
+		node := M4Node{Name: name, Size: size}
+		if dir == "0" {
+			node.IsDirectory = true
+		}
+		d.Nodes = append(d.Nodes, node)
+	}
+
+	return d
+}
 
 // M4Client M4 http client with action, address ip client
 // and Cpc file path
