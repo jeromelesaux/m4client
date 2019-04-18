@@ -5,7 +5,7 @@ MV=mv
 
 SOURCEDIR=./cli/
 SOURCES := $(shell find . -name '*.go')
-GOOS=darwin
+#GOOS=darwin
 GOARCH=amd64
 
 #VERSION:=$(shell grep -m1 "M4ClientVersion string" *.go | sed 's/[", ]//g' | cut -d= -f2)
