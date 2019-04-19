@@ -23,3 +23,5 @@ func TestNodeParsing(t *testing.T) {
 		t.Fatalf("Expected 8 nodes and gets :%d", len(d.Nodes))
 	}
 }
+
+

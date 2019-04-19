@@ -1,6 +1,7 @@
 package m4
 
 import (
+	"runtime"
 	"bytes"
 	"errors"
 	"fmt"
@@ -158,7 +159,7 @@ func (m *M4Client) ResetCpc() error {
 
 func (m *M4Client) Download(remotePath string) error {
 	m.action = Download
-	fh, err := os.Create(path.Base(remotePath))
+	fh, err := os.Create(UniversalBase(remotePath))
 	if err != nil {
 		return err
 	}
@@ -195,8 +196,20 @@ func (m *M4Client) UploadDirectoryContent(remotePath, localDirectoryPath string)
 	return nil
 }
 
+func UniversalBase( filePath string ) string {
+
+	if runtime.GOOS == "windows" {
+		pos := strings.LastIndex(filePath,"\\")
+		return filePath[pos+1:len(filePath)]
+	} else {
+		return path.Base(filePath)
+	}
+}
+
 func (m *M4Client) Upload(remotePath, localPath string) error {
 	m.action = Upload
+	remoteFilePath := remotePath+"/"+UniversalBase(localPath)
+	fmt.Fprintf(os.Stdout, "M4 action :%s,input file:%s url:%s, parameter:%s\n", m.action, localPath, m.Url(),remoteFilePath)	
 	fh, err := os.Open(localPath)
 	if err != nil {
 		return err
@@ -208,7 +221,9 @@ func (m *M4Client) Upload(remotePath, localPath string) error {
 	fh.Seek(0, 0)*/
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	part, err := writer.CreateFormFile("upfile", remotePath+"/"+path.Base(localPath))
+	
+	fmt.Fprintf(os.Stdout,"remote file path (%s)\n",remoteFilePath)
+	part, err := writer.CreateFormFile("upfile", remoteFilePath)
 	if err != nil {
 		return err
 	}
@@ -272,7 +287,7 @@ func (m *M4Client) Run(cpcfile string) error {
 
 func (m *M4Client) MakeDirectory(remotedirectory string) error {
 	m.action = Mkdir
-	fmt.Fprintf(os.Stdout, "M4 action :%s, url:%s\n", m.action, m.Url())
+	fmt.Fprintf(os.Stdout, "M4 action :%s, url:%s\n", m.action, m.Url()+remotedirectory)
 	req, err := http.NewRequest("GET", m.Url()+remotedirectory, nil)
 	if err != nil {
 		return err
