@@ -1,7 +1,6 @@
 package m4
 
 import (
-	"runtime"
 	"bytes"
 	"errors"
 	"fmt"
@@ -12,6 +11,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -196,11 +196,11 @@ func (m *M4Client) UploadDirectoryContent(remotePath, localDirectoryPath string)
 	return nil
 }
 
-func UniversalBase( filePath string ) string {
+func UniversalBase(filePath string) string {
 
 	if runtime.GOOS == "windows" {
-		pos := strings.LastIndex(filePath,"\\")
-		return filePath[pos+1:len(filePath)]
+		pos := strings.LastIndex(filePath, "\\")
+		return filePath[pos+1 : len(filePath)]
 	} else {
 		return path.Base(filePath)
 	}
@@ -208,8 +208,8 @@ func UniversalBase( filePath string ) string {
 
 func (m *M4Client) Upload(remotePath, localPath string) error {
 	m.action = Upload
-	remoteFilePath := remotePath+"/"+UniversalBase(localPath)
-	fmt.Fprintf(os.Stdout, "M4 action :%s,input file:%s url:%s, parameter:%s\n", m.action, localPath, m.Url(),remoteFilePath)	
+	remoteFilePath := remotePath + "/" + UniversalBase(localPath)
+	fmt.Fprintf(os.Stdout, "M4 action :%s,input file:%s url:%s, parameter:%s\n", m.action, localPath, m.Url(), remoteFilePath)
 	fh, err := os.Open(localPath)
 	if err != nil {
 		return err
@@ -221,8 +221,8 @@ func (m *M4Client) Upload(remotePath, localPath string) error {
 	fh.Seek(0, 0)*/
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	
-	fmt.Fprintf(os.Stdout,"remote file path (%s)\n",remoteFilePath)
+
+	fmt.Fprintf(os.Stdout, "remote file path (%s)\n", remoteFilePath)
 	part, err := writer.CreateFormFile("upfile", remoteFilePath)
 	if err != nil {
 		return err
@@ -435,4 +435,13 @@ func (m *M4Client) CurrentDirectory() (string, error) {
 	}
 
 	return content, nil
+}
+
+func (m *M4Client) GetDir(remotepath string) (error, *M4Dir) {
+	content, err := m.Ls(remotepath)
+	if err != nil {
+		return err, nil
+	}
+	v := NewM4Dir(content)
+	return nil, v
 }
