@@ -182,6 +182,23 @@ func (m *M4Client) Download(remotePath string) error {
 	return nil
 }
 
+func (m *M4Client) DownloadContent(remotepath string) ([]byte, error) {
+	m.action = Download
+	req, err := http.NewRequest("GET", remotepath, nil)
+	req.Header.Add("user-agent", userAgent)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New("Not http status ok ")
+	}
+	content, err := ioutil.ReadAll(resp.Body)
+	return content, err
+}
+
 func (m *M4Client) UploadDirectoryContent(remotePath, localDirectoryPath string) error {
 	files, err := ioutil.ReadDir(localDirectoryPath)
 	if err != nil {
