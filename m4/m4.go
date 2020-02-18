@@ -57,6 +57,9 @@ func NewM4Dir(content string) *M4Dir {
 	d := &M4Dir{CurrentPath: res[0], Nodes: make([]M4Node, 0)}
 	for i := 1; i < len(res); i++ {
 		l := res[i]
+		if l == "" {
+			continue
+		}
 		var size, name, dir string
 		var index int
 		for j := len(l) - 1; j >= 0; j-- {
@@ -184,7 +187,8 @@ func (m *M4Client) Download(remotePath string) error {
 
 func (m *M4Client) DownloadContent(remotepath string) ([]byte, error) {
 	m.action = Download
-	req, err := http.NewRequest("GET", remotepath, nil)
+	remotepath = filepath.Clean(remotepath)
+	req, err := http.NewRequest("GET", m.Url()+remotepath, nil)
 	req.Header.Add("user-agent", userAgent)
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -459,6 +463,7 @@ func (m *M4Client) GetDir(remotepath string) (error, *M4Dir) {
 	if err != nil {
 		return err, nil
 	}
+	fmt.Fprintf(os.Stdout, "remotepath [%s] returns %s\n", remotepath, content)
 	v := NewM4Dir(content)
 	return nil, v
 }
