@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -167,7 +168,12 @@ func (m *M4Client) Download(remotePath string) error {
 		return err
 	}
 	defer fh.Close()
-	req, err := http.NewRequest("GET", m.Url()+remotePath, nil)
+	baseUrl, err := url.Parse(m.Url())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error while parsing query :%v\n", err)
+	}
+	baseUrl.Path += remotePath
+	req, err := http.NewRequest("GET", baseUrl.String(), nil)
 	req.Header.Add("user-agent", userAgent)
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -187,8 +193,13 @@ func (m *M4Client) Download(remotePath string) error {
 
 func (m *M4Client) DownloadContent(remotepath string) ([]byte, error) {
 	m.action = Download
-	remotepath = filepath.Clean(remotepath)
-	req, err := http.NewRequest("GET", m.Url()+remotepath, nil)
+	baseUrl, err := url.Parse(m.Url())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error while parsing query :%v\n", err)
+	}
+	baseUrl.Path += remotepath
+	req, err := http.NewRequest("GET", baseUrl.String(), nil)
+	fmt.Fprintf(os.Stdout, "Request to M4: %s\n", baseUrl.String())
 	req.Header.Add("user-agent", userAgent)
 	client := &http.Client{}
 	resp, err := client.Do(req)
