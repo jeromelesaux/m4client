@@ -197,7 +197,7 @@ func (m *M4Client) DownloadContent(remotepath string) ([]byte, error) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error while parsing query :%v\n", err)
 	}
-	baseUrl.Path += remotepath
+	baseUrl.Path += strings.ReplaceAll(remotepath, "\\", "")
 	req, err := http.NewRequest("GET", baseUrl.String(), nil)
 	fmt.Fprintf(os.Stdout, "Request to M4: %s\n", baseUrl.String())
 	req.Header.Add("user-agent", userAgent)
