@@ -7,6 +7,13 @@ import (
 	"os"
 )
 
+var (
+	BasicType     byte = 0
+	ProtectedType byte = 1
+	BinaryType    byte = 2
+	AsciiType     byte = 0x16
+)
+
 // CpcHead structure describes the Amsdos header
 type CpcHead struct {
 	User        byte
