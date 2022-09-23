@@ -9,7 +9,7 @@ import (
 
 var (
 	host       = flag.String("host", "", "Ip V4 or hostname of the your CPC")
-	infile     = flag.String("file", "", "file path of the file to get or to send")
+	//infile     = flag.String("file", "", "file path of the file to get or to send")
 	remotePath = flag.String("remotepath", "", "remote path where to get or send your file")
 	ls         = flag.String("ls", "", "get the current remote path on your m4.")
 	cd         = flag.String("cd", "", "change the current remote path on your m4.")

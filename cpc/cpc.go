@@ -107,7 +107,6 @@ func (c *CpcHead) ToString() string {
 
 func (c *CpcHead) PrettyPrint() {
 	fmt.Printf("%x", *c)
-	return
 }
 
 var (
