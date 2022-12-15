@@ -3,12 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/jeromelesaux/m4client/m4"
 	"os"
+
+	"github.com/jeromelesaux/m4client/m4"
 )
 
 var (
-	host       = flag.String("host", "", "Ip V4 or hostname of the your CPC")
+	host = flag.String("host", "", "Ip V4 or hostname of the your CPC")
 	//infile     = flag.String("file", "", "file path of the file to get or to send")
 	remotePath = flag.String("remotepath", "", "remote path where to get or send your file")
 	ls         = flag.String("ls", "", "get the current remote path on your m4.")
@@ -39,7 +40,10 @@ func main() {
 	}
 	if *cmd != "" {
 		if *remotePath != "" {
-			client.ExecuteCmd(*cmd, *remotePath)
+			if err := client.ExecuteCmd(*cmd, *remotePath); err != nil {
+				fmt.Fprintf(os.Stderr, "Cannot execute the file (%s) error %v\n", *cmd, err)
+
+			}
 		} else {
 			fmt.Fprintf(os.Stderr, "Cannot execute the file (%s) without the remotepath, set it\n", *cmd)
 		}

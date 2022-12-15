@@ -228,7 +228,9 @@ func (m *M4Client) UploadDirectoryContent(remotePath, localDirectoryPath string)
 
 	for _, file := range files {
 		if !file.IsDir() {
-			m.Upload(remotePath, localDirectoryPath+string(filepath.Separator)+file.Name())
+			if err := m.Upload(remotePath, localDirectoryPath+string(filepath.Separator)+file.Name()); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -377,13 +379,18 @@ func (m *M4Client) UploadRom(romFilpath, romName string, romId int) error {
 	if err != nil {
 		return err
 	}
-	slotNumW.Write([]byte(fmt.Sprintf("%d", romId)))
-
+	_, err = slotNumW.Write([]byte(fmt.Sprintf("%d", romId)))
+	if err != nil {
+		return err
+	}
 	slotNameW, err := writer.CreateFormField("slotname")
 	if err != nil {
 		return err
 	}
-	slotNameW.Write([]byte(romName))
+	_, err = slotNameW.Write([]byte(romName))
+	if err != nil {
+		return err
+	}
 
 	writer.Close()
 
