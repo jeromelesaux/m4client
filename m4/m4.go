@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -216,12 +215,12 @@ func (m *M4Client) DownloadContent(remotepath string) ([]byte, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.New("not http status ok ")
 	}
-	content, err := ioutil.ReadAll(resp.Body)
+	content, err := io.ReadAll(resp.Body)
 	return content, err
 }
 
 func (m *M4Client) UploadDirectoryContent(remotePath, localDirectoryPath string) error {
-	files, err := ioutil.ReadDir(localDirectoryPath)
+	files, err := os.ReadDir(localDirectoryPath)
 	if err != nil {
 		return err
 	}
@@ -237,7 +236,6 @@ func (m *M4Client) UploadDirectoryContent(remotePath, localDirectoryPath string)
 }
 
 func UniversalBase(filePath string) string {
-
 	if runtime.GOOS == "windows" {
 		pos := strings.LastIndex(filePath, "\\")
 		return filePath[pos+1:]
@@ -298,6 +296,7 @@ func (m *M4Client) Execute(cpcfile string) error {
 	}
 	return PerformHttpAction(req)
 }
+
 func (m *M4Client) ExecuteCmd(cmd, cpcfile string) error {
 	m.action = Execute
 	req, err := http.NewRequest("GET", m.Url()+cmd+","+cpcfile, nil)
