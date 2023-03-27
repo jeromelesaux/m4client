@@ -3,8 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/jeromelesaux/m4client/m4"
 	"os"
+
+	"github.com/jeromelesaux/m4client/m4"
 )
 
 var (
@@ -39,7 +40,11 @@ func main() {
 	}
 	if *cmd != "" {
 		if *remotePath != "" {
-			client.ExecuteCmd(*cmd, *remotePath)
+			err := client.ExecuteCmd(*cmd, *remotePath)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Cannot execute the file (%s) without the remotepath, set it\n", *cmd)
+				return
+			}
 		} else {
 			fmt.Fprintf(os.Stderr, "Cannot execute the file (%s) without the remotepath, set it\n", *cmd)
 		}

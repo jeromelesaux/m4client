@@ -92,6 +92,23 @@ package-zip:  ${APP}
 		@echo "    Archive ${APP}-${GOOS}-${GOARCH}.zip created"
 
 
+deps: get-linter get-vulncheck
+	@echo "Getting tools..."
+
+get-linter:
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+get-vulncheck:
+	go install golang.org/x/vuln/cmd/govulncheck@latest
+
+lint:
+	@echo "Lint the whole project"
+	golangci-lint run --timeout 5m ./...
+
+vulncheck:
+	govulncheck ./...
+
+
 #----------------------------------------------------------------------#
 #----------------------------- docker actions -------------------------#
 #----------------------------------------------------------------------#

@@ -174,6 +174,9 @@ func (m *M4Client) Download(remotePath string) error {
 	}
 	baseUrl.Path += remotePath
 	req, err := http.NewRequest("GET", baseUrl.String(), nil)
+	if err != nil {
+		return err
+	}
 	req.Header.Add("user-agent", userAgent)
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -199,6 +202,9 @@ func (m *M4Client) DownloadContent(remotepath string) ([]byte, error) {
 	}
 	baseUrl.Path += strings.ReplaceAll(remotepath, "\\", "")
 	req, err := http.NewRequest("GET", baseUrl.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 	fmt.Fprintf(os.Stdout, "Request to M4: %s\n", baseUrl.String())
 	req.Header.Add("user-agent", userAgent)
 	client := &http.Client{}
@@ -222,7 +228,10 @@ func (m *M4Client) UploadDirectoryContent(remotePath, localDirectoryPath string)
 
 	for _, file := range files {
 		if !file.IsDir() {
-			m.Upload(remotePath, localDirectoryPath+string(filepath.Separator)+file.Name())
+			err := m.Upload(remotePath, localDirectoryPath+string(filepath.Separator)+file.Name())
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -232,7 +241,7 @@ func UniversalBase(filePath string) string {
 
 	if runtime.GOOS == "windows" {
 		pos := strings.LastIndex(filePath, "\\")
-		return filePath[pos+1 : len(filePath)]
+		return filePath[pos+1:]
 	} else {
 		return path.Base(filePath)
 	}
@@ -371,13 +380,19 @@ func (m *M4Client) UploadRom(romFilpath, romName string, romId int) error {
 	if err != nil {
 		return err
 	}
-	slotNumW.Write([]byte(fmt.Sprintf("%d", romId)))
+	_, err = slotNumW.Write([]byte(fmt.Sprintf("%d", romId)))
+	if err != nil {
+		return err
+	}
 
 	slotNameW, err := writer.CreateFormField("slotname")
 	if err != nil {
 		return err
 	}
-	slotNameW.Write([]byte(romName))
+	_, err = slotNameW.Write([]byte(romName))
+	if err != nil {
+		return err
+	}
 
 	writer.Close()
 
@@ -402,6 +417,9 @@ func (m *M4Client) GetCache(remotePath string) (string, error) {
 	m.action = Download
 
 	req, err := http.NewRequest("GET", m.Url()+remotePath, nil)
+	if err != nil {
+		return "", err
+	}
 	req.Header.Add("user-agent", userAgent)
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -417,7 +435,7 @@ func (m *M4Client) GetCache(remotePath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(fh.Bytes()), nil
+	return fh.String(), nil
 }
 
 /*

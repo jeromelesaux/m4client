@@ -98,9 +98,8 @@ func (c *CpcHead) ToString() string {
 		c.ComputedChecksum16())
 }
 
-func (c *CpcHead) PrettyPrint() {
-	fmt.Printf("%x", *c)
-	return
+func (c CpcHead) PrettyPrint() {
+	fmt.Printf("%x", c)
 }
 
 var (
