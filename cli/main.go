@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	host       = flag.String("host", "", "Ip V4 or hostname of the your CPC")
-	infile     = flag.String("file", "", "file path of the file to get or to send")
+	host = flag.String("host", "", "Ip V4 or hostname of the your CPC")
+	//infile     = flag.String("file", "", "file path of the file to get or to send")
 	remotePath = flag.String("remotepath", "", "remote path where to get or send your file")
 	ls         = flag.String("ls", "", "get the current remote path on your m4.")
 	cd         = flag.String("cd", "", "change the current remote path on your m4.")
@@ -40,10 +40,9 @@ func main() {
 	}
 	if *cmd != "" {
 		if *remotePath != "" {
-			err := client.ExecuteCmd(*cmd, *remotePath)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Cannot execute the file (%s) without the remotepath, set it\n", *cmd)
-				return
+			if err := client.ExecuteCmd(*cmd, *remotePath); err != nil {
+				fmt.Fprintf(os.Stderr, "Cannot execute the file (%s) error %v\n", *cmd, err)
+
 			}
 		} else {
 			fmt.Fprintf(os.Stderr, "Cannot execute the file (%s) without the remotepath, set it\n", *cmd)

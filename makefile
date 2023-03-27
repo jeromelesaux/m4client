@@ -12,7 +12,7 @@ GOARCH=amd64
 APP=m4client
 
 BUILD_TIME=`date +%FT%T%z`
-PACKAGES := 
+PACKAGES :=
 M4_CLIENT=$(shell git rev-parse --short HEAD)
 
 LIBS=
@@ -43,15 +43,15 @@ package: ${APP}
 		@tar -cvzf ${APP}-${GOOS}-${GOARCH}.tar.gz ${APP}
 		@echo "    Archive ${APP}-${GOOS}-${GOARCH}.tar.gz created"
 
-test: $(APP) 
-		@GOOS=${GOOS} GOARCH=${GOARCH} go test -cover ./...
+test: $(APP)
+		@GOOS=${GOOS} GOARCH=${GOARCH} go test -cover ./... -coverprofile cover.lcov
 		@echo " Tests OK."
 
 coverage-display:
 		$(shell ls -d */ | while read d; do d_=`echo $$d | tr -d '/'`;go test -coverprofile=$$d_.out github.com/jeromelesaux/m4client/$$d_; go tool cover -html=$$d_.out; done 1>/dev/null)
 		@echo " Tests executed and results will be displayed in your navigator."
 
-coverage: 
+coverage:
 		@go get github.com/axw/gocov/gocov
 		@gocov test ./... | gocov report
 
@@ -70,8 +70,8 @@ audit: deps
 		@echo "    Audit effectue"
 
 deps: init
-		@echo "    Download packages"		
-		dep ensure -update -v
+		@echo "    Download packages"
+		@echo "dep ensure -update -v"
 
 init: clean
 		@echo "    Init of the project"
@@ -84,7 +84,7 @@ clean:
 		@echo "    Nettoyage effectuee"
 
 
-execute: 
+execute:
 		@./${APP} -port 8080 -dbconfig dbconfig.json -appconfig appconfig.json -logerrorfile test.log -loglevel DEBUG
 
 package-zip:  ${APP}
@@ -129,7 +129,7 @@ dockerStop:
 	docker-compose kill
 	docker-compose rm -f
 
-dockerBuildUp: dockerStop dockerBuild 
+dockerBuildUp: dockerStop dockerBuild
 
 dockerWatch:
 	@watch -n1 'docker ps | grep ${M4_CLIENT}'

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -115,7 +114,7 @@ func PerformHttpAction(req *http.Request) error {
 	defer resp.Body.Close()
 	fmt.Fprintf(os.Stdout, "Response code :%d\n", resp.StatusCode)
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("Response from cpc http server differs from 200")
+		return errors.New("response from cpc http server differs from 200")
 	}
 	//body, err := ioutil.ReadAll(resp.Body)
 	//if err != nil {
@@ -185,7 +184,7 @@ func (m *M4Client) Download(remotePath string) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("Not http status ok ")
+		return errors.New("not http status ok ")
 	}
 	_, err = io.Copy(fh, resp.Body)
 	if err != nil {
@@ -214,22 +213,21 @@ func (m *M4Client) DownloadContent(remotepath string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("Not http status ok ")
+		return nil, errors.New("not http status ok ")
 	}
-	content, err := ioutil.ReadAll(resp.Body)
+	content, err := io.ReadAll(resp.Body)
 	return content, err
 }
 
 func (m *M4Client) UploadDirectoryContent(remotePath, localDirectoryPath string) error {
-	files, err := ioutil.ReadDir(localDirectoryPath)
+	files, err := os.ReadDir(localDirectoryPath)
 	if err != nil {
 		return err
 	}
 
 	for _, file := range files {
 		if !file.IsDir() {
-			err := m.Upload(remotePath, localDirectoryPath+string(filepath.Separator)+file.Name())
-			if err != nil {
+			if err := m.Upload(remotePath, localDirectoryPath+string(filepath.Separator)+file.Name()); err != nil {
 				return err
 			}
 		}
@@ -238,7 +236,6 @@ func (m *M4Client) UploadDirectoryContent(remotePath, localDirectoryPath string)
 }
 
 func UniversalBase(filePath string) string {
-
 	if runtime.GOOS == "windows" {
 		pos := strings.LastIndex(filePath, "\\")
 		return filePath[pos+1:]
@@ -286,7 +283,7 @@ func (m *M4Client) Upload(remotePath, localPath string) error {
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("Http response differs from 200")
+		return errors.New("http response differs from 200")
 	}
 	return nil
 }
@@ -299,6 +296,7 @@ func (m *M4Client) Execute(cpcfile string) error {
 	}
 	return PerformHttpAction(req)
 }
+
 func (m *M4Client) ExecuteCmd(cmd, cpcfile string) error {
 	m.action = Execute
 	req, err := http.NewRequest("GET", m.Url()+cmd+","+cpcfile, nil)
@@ -356,7 +354,7 @@ func (m *M4Client) DeleteRom(romNumber int) error {
 
 func (m *M4Client) UploadRom(romFilpath, romName string, romId int) error {
 	if romId < 0 || romId >= 32 {
-		return errors.New("Rom id is not compliant.")
+		return errors.New("rom id is not compliant")
 	}
 	m.action = Rom
 
@@ -384,7 +382,6 @@ func (m *M4Client) UploadRom(romFilpath, romName string, romId int) error {
 	if err != nil {
 		return err
 	}
-
 	slotNameW, err := writer.CreateFormField("slotname")
 	if err != nil {
 		return err
@@ -408,7 +405,7 @@ func (m *M4Client) UploadRom(romFilpath, romName string, romId int) error {
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("Http response differs from 200")
+		return errors.New("http response differs from 200")
 	}
 	return nil
 }
@@ -428,7 +425,7 @@ func (m *M4Client) GetCache(remotePath string) (string, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return "", errors.New("Not http status ok ")
+		return "", errors.New("not http status ok ")
 	}
 	fh := new(bytes.Buffer)
 	_, err = io.Copy(fh, resp.Body)
@@ -466,7 +463,7 @@ func (m *M4Client) Ls(remoteDirectory string) (string, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", errors.New("Response from cpc http server differs from 200")
+		return "", errors.New("response from cpc http server differs from 200")
 	}
 	content, err := m.GetCache("/m4/dir.txt")
 	if err != nil {
@@ -487,12 +484,12 @@ func (m *M4Client) CurrentDirectory() (string, error) {
 	return content, nil
 }
 
-func (m *M4Client) GetDir(remotepath string) (error, *M4Dir) {
+func (m *M4Client) GetDir(remotepath string) (*M4Dir, error) {
 	content, err := m.Ls(remotepath)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 	fmt.Fprintf(os.Stdout, "remotepath [%s] returns %s\n", remotepath, content)
 	v := NewM4Dir(content)
-	return nil, v
+	return v, nil
 }
