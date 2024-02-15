@@ -77,7 +77,7 @@ func NewM4Dir(content string) *M4Dir {
 			index++
 		}
 
-		name = string(l[0:(len(l) - (index + 2))])
+		name = l[0:(len(l) - (index + 2))]
 
 		node := M4Node{Name: name, Size: size}
 		if dir == "0" {

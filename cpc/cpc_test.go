@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// nolint: funlen
 func TestHeader(t *testing.T) {
 	t.Parallel()
 	t.Run("Checksum16", func(t *testing.T) {

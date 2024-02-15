@@ -27,6 +27,7 @@ var (
 	cmd        = flag.String("cmd", "", "Execute remote command on your CPC")
 )
 
+// nolint: funlen, gocognit
 func main() {
 	flag.Parse()
 

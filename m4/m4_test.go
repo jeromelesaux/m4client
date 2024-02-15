@@ -30,6 +30,7 @@ func TestNodeParsing(t *testing.T) {
 	}
 }
 
+// nolint: funlen
 func TestM4Client(t *testing.T) {
 	t.Run("start", func(t *testing.T) {
 		u := startServer(t, http.StatusOK, "")
@@ -109,7 +110,7 @@ Subdirectory,0,0`
 func startServer(t *testing.T, httpCode int, httpBody string) *url.URL {
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(httpCode)
-		w.Write([]byte(httpBody))
+		_, _ = w.Write([]byte(httpBody))
 	}))
 	u, err := url.Parse(s.URL)
 	if err != nil {
